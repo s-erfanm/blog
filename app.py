@@ -1,15 +1,24 @@
 from flask import Flask, render_template, url_for
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "my script key"
 
+# create form class
+class GetNameForm(FlaskForm):
+    name = StringField("whats your Name ? ", validators=[DataRequired()])
+    submit = SubmitField('Submit')
+    
 
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html') 
 
-@app.route('/user/<name>')
-def user(name):
+
+@app.route('/user/<name>', methods=['GET', 'POST']
     return render_template('user.html', username=name)
 
 
@@ -20,11 +29,17 @@ def page_not_found(e):
 
 
 
-
-
-
-
-
+@app.route('/name', methods=['GET', 'POST'])
+def name():
+    name = None
+    form = GetNameForm()
+    
+    if form.validate_on_submit():
+        name = form.name.data
+        form.name.data = ''
+    return render_template('name.html', form=form, name=name)
+    
+    
 
 
 
