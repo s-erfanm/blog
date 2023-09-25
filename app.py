@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
@@ -18,7 +18,8 @@ def home():
     return render_template('home.html') 
 
 
-@app.route('/user/<name>', methods=['GET', 'POST']
+@app.route('/user/<name>')
+def user(name):
     return render_template('user.html', username=name)
 
 
@@ -37,12 +38,10 @@ def name():
     if form.validate_on_submit():
         name = form.name.data
         form.name.data = ''
+        flash("Form Submitted Successfully !")
     return render_template('name.html', form=form, name=name)
     
     
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=3030)
