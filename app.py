@@ -2,20 +2,29 @@ from flask import Flask, render_template, url_for, flash, request
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
+import os
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
 import datetime
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = "my script key"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///user.db"
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///' + os.path.join(basedir, 'database.db')
+
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(128), nullable=False, unique=True)
+    color = db.Column(db.String(128))
     date_added = db.Column(db.DateTime, default=datetime.datetime.now)
     
     def __repr__(self):
@@ -31,6 +40,7 @@ class GetNameForm(FlaskForm):
 class UserForm(FlaskForm):
     name = StringField("name: ", validators=[DataRequired()])
     email = StringField("email:", validators=[DataRequired()]) 
+    color = StringField("favorite color: ")
     submit = SubmitField('Submit')
     
 
@@ -52,19 +62,17 @@ def add_user():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
+            user = Users(name=form.name.data, email=form.email.data, color=form.color.data)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
+        form.color.data = ''
         flash("User added  Successfully !")
     our_users = Users.query.order_by(Users.date_added)
           
-    return render_template('add_user.html',
-                           form=form,
-                           name=name,
-                           our_users=our_users)
+    return render_template('add_user.html',form=form, name=name, our_users=our_users, )
 
 
 @app.errorhandler(404)
@@ -80,6 +88,7 @@ def update(id):
     if request.method == 'POST':
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
+        name_to_update.color = request.form['color']
         
         try :
             db.session.commit()
@@ -112,10 +121,10 @@ def name():
         flash("Form Submitted Successfully !")
     return render_template('name.html', form=form, name=name)
     
-# with app.app_context():
-#     db.create_all()
+
 if __name__ == '__main__':
-    
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, port=3030)
 
 
