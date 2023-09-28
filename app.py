@@ -71,11 +71,11 @@ def add_user():
         form.name.data = ''
         form.email.data = ''
         form.color.data = ''
-        form.isGay.data = False
+
         flash("User added  Successfully !")
     our_users = Users.query.order_by(Users.date_added)
           
-    return render_template('add_user.html',form=form, name=name, our_users=our_users, )
+    return render_template('add_user.html',form=form, name=name, our_users=our_users)
 
 
 @app.errorhandler(404)
@@ -92,14 +92,14 @@ def update(id):
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
         name_to_update.color = request.form['color']
-        name_to_update.isGay = request.form['isGay']
         
         try :
             db.session.commit()
             flash("user updated successfully")
             return render_template('update_user.html',
                                 form=form,
-                                name_to_update=name_to_update)
+                                name_to_update=name_to_update,
+                                id=id )
         
         except :
 
@@ -111,7 +111,26 @@ def update(id):
     else:
             return render_template('update_user.html',
                                 form=form,
-                                name_to_update=name_to_update)           
+                                name_to_update=name_to_update,
+                                id=id)           
+
+
+@app.route("/delete/<int:id>", methods=["GET", "POST"])
+def delete(id): 
+    user_to_delete = Users.query.get_or_404(id)
+    name = None
+    form = UserForm()
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("user deleted successfully")
+        our_users = Users.query.order_by(Users.date_added)
+        return render_template('add_user.html',form=form, name=name, our_users=our_users)
+    except:
+        flash("there is a problem to delete user!")
+        return render_template('add_user.html',form=form, name=name, our_users=our_users)
+
+
 
 
 @app.route('/name', methods=['GET', 'POST'])
