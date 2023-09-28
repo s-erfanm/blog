@@ -1,6 +1,6 @@
 from flask import Flask, render_template, url_for, flash, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, BooleanField
 from wtforms.validators import DataRequired
 import os
 from flask_sqlalchemy import SQLAlchemy
@@ -25,6 +25,7 @@ class Users(db.Model):
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(128), nullable=False, unique=True)
     color = db.Column(db.String(128))
+    isGay = db.Column(db.Boolean, default=False)
     date_added = db.Column(db.DateTime, default=datetime.datetime.now)
     
     def __repr__(self):
@@ -41,6 +42,7 @@ class UserForm(FlaskForm):
     name = StringField("name: ", validators=[DataRequired()])
     email = StringField("email:", validators=[DataRequired()]) 
     color = StringField("favorite color: ")
+    isGay = BooleanField("Are you Gay?")
     submit = SubmitField('Submit')
     
 
@@ -69,6 +71,7 @@ def add_user():
         form.name.data = ''
         form.email.data = ''
         form.color.data = ''
+        form.isGay.data = False
         flash("User added  Successfully !")
     our_users = Users.query.order_by(Users.date_added)
           
@@ -89,6 +92,7 @@ def update(id):
         name_to_update.name = request.form['name']
         name_to_update.email = request.form['email']
         name_to_update.color = request.form['color']
+        name_to_update.isGay = request.form['isGay']
         
         try :
             db.session.commit()
