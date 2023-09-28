@@ -25,7 +25,7 @@ class Users(db.Model):
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(128), nullable=False, unique=True)
     color = db.Column(db.String(128))
-    isGay = db.Column(db.Boolean, default=False)
+    # isGay = db.Column(db.Boolean, default=False)
     date_added = db.Column(db.DateTime, default=datetime.datetime.now)
     
     def __repr__(self):

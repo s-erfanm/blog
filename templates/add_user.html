@@ -16,7 +16,7 @@
     <tr>
         <td>
             {{our_user.id}} - <a href="{{url_for('update', id=our_user.id)}}">{{our_user.name}} </a> -
-            {{our_user.email}} - {{our_user.color}} - {% if our_user.isGay %} ✔ {% else %} ❌ {% endif%}
+            {{our_user.email}} 
 
         </td>
     </tr>
@@ -54,7 +54,7 @@
     <tr>
         <td>
             {{our_user.id}} - <a href="{{url_for('update', id=our_user.id)}}">{{our_user.name}} </a> -
-            {{our_user.email}} - {{our_user.color}} - {% if our_user.isGay %} ✔ {% else %} ❌ {% endif%}
+            {{our_user.email}} 
         </td>
     </tr>
     {% endfor %}
