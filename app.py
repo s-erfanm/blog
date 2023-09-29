@@ -1,12 +1,13 @@
 from flask import Flask, render_template, url_for, flash, request
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, BooleanField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SubmitField, BooleanField, PasswordField
+from wtforms.validators import DataRequired, EqualTo, Length
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-
+from flask_bcrypt import Bcrypt 
 import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] ='sqlite:///' + os.path.join(basedir, 'dat
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+bcrypt = Bcrypt(app)
 
 
 class Users(db.Model):
@@ -25,9 +27,9 @@ class Users(db.Model):
     name = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(128), nullable=False, unique=True)
     color = db.Column(db.String(128))
-    # isGay = db.Column(db.Boolean, default=False)
+    password_hash = db.Column(db.String(128), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.datetime.now)
-    
+
     def __repr__(self):
         return f'name : {self.name}/n email : {self.email}'
     
@@ -42,7 +44,8 @@ class UserForm(FlaskForm):
     name = StringField("name: ", validators=[DataRequired()])
     email = StringField("email:", validators=[DataRequired()]) 
     color = StringField("favorite color: ")
-    isGay = BooleanField("Are you Gay?")
+    password_hash = PasswordField("password:", validators= [DataRequired(), EqualTo('password_hash2', message='passwords must match')])
+    password_hash2 = PasswordField("confirm password:", validators=[DataRequired()])
     submit = SubmitField('Submit')
     
 
@@ -60,17 +63,23 @@ def user(name):
 def add_user():
     name = None
     form = UserForm()
-
     if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password_hash.data).decode('utf-8')
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
-            user = Users(name=form.name.data, email=form.email.data, color=form.color.data)
+            user = Users(
+                        name=form.name.data,
+                        email=form.email.data,
+                        color=form.color.data,
+                        password_hash=hashed_password,  
+                        )
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
         form.email.data = ''
         form.color.data = ''
+        form.password_hash.data = ''
 
         flash("User added  Successfully !")
     our_users = Users.query.order_by(Users.date_added)
